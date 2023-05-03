@@ -1,5 +1,7 @@
 package com.example.chat_app;
 
+import static com.example.chat_app.PushNotifications.ValuesClass.TO;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -7,26 +9,39 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.chat_app.Adapter.ChatAdapter;
 import com.example.chat_app.Models.MessageModel;
+import com.example.chat_app.PushNotifications.ApiUtils;
+import com.example.chat_app.PushNotifications.NotificationData;
+import com.example.chat_app.PushNotifications.PushNotification;
 import com.example.chat_app.databinding.ActivityChatDetailBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChatDetailActivity extends AppCompatActivity {
 
     ActivityChatDetailBinding binding;
     FirebaseDatabase database;
     FirebaseAuth auth;
+
+    // Push notification vars:
+    private String title, messagePush;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +117,12 @@ public class ChatDetailActivity extends AppCompatActivity {
                 model.setTimestamp(new Date().getTime());
                 binding.enterMessage.setText("");
 
+                // info for the push notification
+                messagePush = message;
+                title = userName;
+                sendNoti();
+
+
                 // store the message into the database
                 database.getReference().child("chats")
                         .child(senderRoom)
@@ -123,7 +144,49 @@ public class ChatDetailActivity extends AppCompatActivity {
                             }
                         });
             }
+
         });
 
+        msg();
+
     }
+
+
+    private void msg(){
+        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+            FirebaseAuth.getInstance().signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                @Override
+                public void onSuccess(AuthResult authResult) {
+                    FirebaseMessaging.getInstance().subscribeToTopic("All");
+                }
+            });
+        }
+    }
+
+
+
+    private void sendNoti(){
+        ApiUtils.getClients().sendNotification(new PushNotification(new NotificationData(title, messagePush), TO))
+                .enqueue(new Callback<PushNotification>() {
+                    @Override
+                    public void onResponse(Call<PushNotification> call, Response<PushNotification> response) {
+                        if (response.isSuccessful()){
+                            Toast.makeText(ChatDetailActivity.this, "Съобщение изпратено", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(ChatDetailActivity.this, "Възникна Грешка", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<PushNotification> call, Throwable t) {
+                        Toast.makeText(ChatDetailActivity.this, t.getMessage().toString(), Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+    }
+
+
+
+
 }
