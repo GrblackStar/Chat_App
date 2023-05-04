@@ -73,7 +73,7 @@ public class ChatAdapter extends RecyclerView.Adapter {
             public boolean onLongClick(View view) {
                 new AlertDialog.Builder(context)
                         .setTitle("Изтриване")
-                        .setMessage("Сигурни ли сте, че искате да изтриет това съобщение")
+                        .setMessage("Сигурни ли сте, че искате да изтриетe това съобщение")
                         .setPositiveButton("Да", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {

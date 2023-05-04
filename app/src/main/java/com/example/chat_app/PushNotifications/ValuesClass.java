@@ -6,5 +6,4 @@ public class ValuesClass {
     public static final String CONTENT_TYPE = "application/json";
     public static final String TO = "/topics/All";
 
-
 }
