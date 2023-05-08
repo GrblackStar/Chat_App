@@ -1,12 +1,17 @@
 package com.example.chat_app;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.chat_app.Adapter.ChatAdapter;
 import com.example.chat_app.Models.MessageModel;
@@ -17,6 +22,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -27,6 +35,15 @@ public class ChatDetailActivity extends AppCompatActivity {
     ActivityChatDetailBinding binding;
     FirebaseDatabase database;
     FirebaseAuth auth;
+
+    // check the extension of the file to upload:
+    private String checker = "";
+    private String myUrl = "";
+    private Uri fileUri;
+
+    private StorageTask uploadTask;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +111,44 @@ public class ChatDetailActivity extends AppCompatActivity {
 
 
 
+        binding.uploadFiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CharSequence options[] = new CharSequence[]{
+                  "Изображение",
+                  "PDF файл",
+                  "MS Word файл"
+                };
+                AlertDialog.Builder builder = new AlertDialog.Builder(ChatDetailActivity.this);
+                builder.setTitle("ИЗБЕРИ ФАЙЛ");
+                builder.setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (i == 0){
+                            // images
+                            checker = "image";
+                            // an Intent to send the user to their device gallery:
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            intent.setType("image/*");
+                            startActivityForResult(intent.createChooser(intent, "Select Image"), 438);
+                        }
+                        if (i == 1){
+                            // pdf
+                            checker = "pdf";
+                        }
+                        if (i == 2){
+                            // word
+                            checker = "docx";
+                        }
+                    }
+                }).show();
+            }
+        });
+
+
+
+
         binding.send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -124,6 +179,35 @@ public class ChatDetailActivity extends AppCompatActivity {
                         });
             }
         });
+
+    }
+
+
+    // override method for uploading file:
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // selected to upload an image
+        if(requestCode == 438  &&  resultCode == RESULT_OK  && data != null && data.getData() != null){
+            fileUri = data.getData();
+
+            if (!checker.equals("image")){
+                // it means that the user has not selected an image, but rather a different kind of file:
+
+            }
+            else if (checker.equals("image")){
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Image Files Chat");
+            }
+            else{
+                Toast.makeText(this, "Nothing Selected!", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
+
 
     }
 }

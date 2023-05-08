@@ -24,6 +24,19 @@
         android:layout_alignParentBottom="true"
         android:id="@+id/linear">
 
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/uploadFiles"
+            android:layout_marginStart="4dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="0"
+            app:srcCompat="@drawable/upload_files_icon"/>
+
+
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
