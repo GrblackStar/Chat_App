@@ -17,6 +17,7 @@ import com.example.chat_app.Adapter.ChatAdapter;
 import com.example.chat_app.Models.MessageModel;
 import com.example.chat_app.databinding.ActivityChatDetailBinding;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,6 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -132,6 +134,7 @@ public class ChatDetailActivity extends AppCompatActivity {
                             intent.setAction(Intent.ACTION_GET_CONTENT);
                             intent.setType("image/*");
                             startActivityForResult(intent.createChooser(intent, "Select Image"), 438);
+
                         }
                         if (i == 1){
                             // pdf
@@ -199,7 +202,55 @@ public class ChatDetailActivity extends AppCompatActivity {
 
             }
             else if (checker.equals("image")){
-                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Image Files Chat");
+                //final StorageReference reference = storage.getReference().child("profile_pic").child(FirebaseAuth.getInstance().getUid());
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! first upload to storage, than get the id and push  it as id, than to database
+
+                StorageReference reference = FirebaseStorage.getInstance().getReference().child("Image_Files_Chat").child(fileUri.getLastPathSegment().toString());
+
+                // initialize sender and receiver
+                final String senderId = auth.getUid();
+                String receiverId = getIntent().getStringExtra("userId");
+                final String senderRoom = senderId + receiverId;
+                final String receiverRoom = receiverId + senderId;
+
+
+                // initialize the image model
+
+                reference.putFile(fileUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                final MessageModel model = new MessageModel(senderId, uri.toString());
+                                model.setTimestamp(new Date().getTime());
+                                database.getReference().child("chats")
+                                        .child(senderRoom)
+                                        .push()
+                                        .setValue(model)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+
+                                                database.getReference().child("chats")
+                                                        .child(receiverRoom)
+                                                        .push()
+                                                        .setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void unused) {
+                                                                // message sent successfully
+                                                            }
+                                                        });
+                                            }
+                                        });
+
+                            }
+                        });
+                    }
+                });
+
+                // messageID, message = uri; uID = user(sender)
+
             }
             else{
                 Toast.makeText(this, "Nothing Selected!", Toast.LENGTH_SHORT).show();

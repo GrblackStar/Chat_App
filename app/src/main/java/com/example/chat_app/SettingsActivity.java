@@ -126,7 +126,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // if not nut, the user has selected something
+        // if not null, the user has selected something
         if(data.getData() != null){
             Uri sFile = data.getData();
             binding.profileImage.setImageURI(sFile);
