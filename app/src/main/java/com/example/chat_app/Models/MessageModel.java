@@ -1,8 +1,22 @@
 package com.example.chat_app.Models;
 
 public class MessageModel {
-    String uID, message, messageID;
+    String uID, message, messageID, messageType;
     Long timestamp;
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
+
+    public MessageModel(String uID, String message, String messageType) {
+        this.uID = uID;
+        this.message = message;
+        this.messageType = messageType;
+    }
 
     public MessageModel(String uID, String message, Long timestamp) {
         this.uID = uID;

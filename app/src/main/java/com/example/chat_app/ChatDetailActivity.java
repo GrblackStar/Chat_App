@@ -222,8 +222,9 @@ public class ChatDetailActivity extends AppCompatActivity {
                         reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                final MessageModel model = new MessageModel(senderId, uri.toString());
+                                final MessageModel model = new MessageModel(senderId, uri.toString(), "image");
                                 model.setTimestamp(new Date().getTime());
+
                                 database.getReference().child("chats")
                                         .child(senderRoom)
                                         .push()
@@ -231,16 +232,16 @@ public class ChatDetailActivity extends AppCompatActivity {
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void unused) {
-
-                                                database.getReference().child("chats")
-                                                        .child(receiverRoom)
-                                                        .push()
-                                                        .setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                            @Override
-                                                            public void onSuccess(Void unused) {
-                                                                // message sent successfully
-                                                            }
-                                                        });
+                                                // message sent
+                                            }
+                                        });
+                                database.getReference().child("chats")
+                                        .child(receiverRoom)
+                                        .push()
+                                        .setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+                                                // message sent successfully
                                             }
                                         });
 

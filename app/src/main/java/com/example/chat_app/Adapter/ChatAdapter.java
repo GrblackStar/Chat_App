@@ -3,9 +3,12 @@ package com.example.chat_app.Adapter;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.Image;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +18,7 @@ import com.example.chat_app.Models.MessageModel;
 import com.example.chat_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -64,6 +68,8 @@ public class ChatAdapter extends RecyclerView.Adapter {
         }
     }
 
+
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         MessageModel messageModel = messageModels.get(position);
@@ -97,8 +103,17 @@ public class ChatAdapter extends RecyclerView.Adapter {
 
 
         if(holder.getClass() == SenderViewHolder.class){
-            ((SenderViewHolder)holder).senderMsg.setText(messageModel.getMessage());
+            if (TextUtils.isEmpty(messageModel.getMessageType())){
+                ((SenderViewHolder)holder).senderMsg.setText(messageModel.getMessage());
+                ((SenderViewHolder)holder).senderImage.setVisibility(View.GONE);
+            }
+            else if(messageModel.getMessageType() != null && messageModel.getMessageType().equals("image")){
+                ((SenderViewHolder) holder).senderMsg.setVisibility(View.GONE);
+                ((SenderViewHolder) holder).senderImage.setVisibility(View.VISIBLE);
+                Picasso.get().load(messageModel.getMessage()).into(((SenderViewHolder) holder).senderImage);
+            }
 
+            // setting date
             Date date = new Date(messageModel.getTimestamp());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("h:mm a");  // HH:mm:ss   //h:mm a
             String strDate = simpleDateFormat.format(date);
@@ -107,6 +122,16 @@ public class ChatAdapter extends RecyclerView.Adapter {
         }
         else{
             ((ReceiverViewHolder)holder).receiverMsg.setText(messageModel.getMessage());
+
+            if (TextUtils.isEmpty(messageModel.getMessageType())){
+                ((ReceiverViewHolder)holder).receiverMsg.setText(messageModel.getMessage());
+                ((ReceiverViewHolder)holder).receiverImage.setVisibility(View.GONE);
+            }
+            else if(messageModel.getMessageType() != null && messageModel.getMessageType().equals("image")){
+                ((ReceiverViewHolder) holder).receiverMsg.setVisibility(View.GONE);
+                ((ReceiverViewHolder) holder).receiverImage.setVisibility(View.VISIBLE);
+                Picasso.get().load(messageModel.getMessage()).into(((ReceiverViewHolder) holder).receiverImage);
+            }
 
             Date date = new Date(messageModel.getTimestamp());
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("h:mm a");  // HH:mm:ss   //h:mm a
@@ -122,11 +147,11 @@ public class ChatAdapter extends RecyclerView.Adapter {
 
     public class ReceiverViewHolder extends RecyclerView.ViewHolder {
         TextView receiverMsg, receiverTime;
-
+        ImageView receiverImage;
 
         public ReceiverViewHolder(@NonNull View itemView) {
             super(itemView);
-
+            receiverImage = itemView.findViewById(R.id.receiverImage);
             receiverMsg = itemView.findViewById(R.id.receiverText);
             receiverTime = itemView.findViewById(R.id.receiverTime);
 
@@ -137,10 +162,11 @@ public class ChatAdapter extends RecyclerView.Adapter {
     public class SenderViewHolder extends RecyclerView.ViewHolder {
 
         TextView senderMsg, senderTime;
+        ImageView senderImage;
 
         public SenderViewHolder(@NonNull View itemView) {
             super(itemView);
-
+            senderImage = itemView.findViewById(R.id.senderImage);
             senderMsg = itemView.findViewById(R.id.senderText);
             senderTime = itemView.findViewById(R.id.senderTime);
         }
