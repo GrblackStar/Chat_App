@@ -3,7 +3,9 @@ package com.example.chat_app.Adapter;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.Image;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,6 +114,23 @@ public class ChatAdapter extends RecyclerView.Adapter {
                 ((SenderViewHolder) holder).senderImage.setVisibility(View.VISIBLE);
                 Picasso.get().load(messageModel.getMessage()).into(((SenderViewHolder) holder).senderImage);
             }
+            else if(messageModel.getMessageType() != null && (messageModel.getMessageType().equals("pdf")   ||  messageModel.getMessageType().equals("docx"))){
+                ((SenderViewHolder) holder).senderMsg.setVisibility(View.GONE);
+                ((SenderViewHolder) holder).senderImage.setVisibility(View.VISIBLE);
+                ((SenderViewHolder) holder).senderImage.setBackgroundResource(R.drawable.file_icon);
+
+                // download file if the user clicks on the document
+                ((SenderViewHolder) holder).itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        // with the position, we get only the message, the user has clicked on
+                        // we are getting the message, which is the url to the storage
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(messageModel.getMessage()));
+                        ((SenderViewHolder) holder).itemView.getContext().startActivity(intent);
+                    }
+                });
+
+            }
 
             // setting date
             Date date = new Date(messageModel.getTimestamp());
@@ -131,6 +150,23 @@ public class ChatAdapter extends RecyclerView.Adapter {
                 ((ReceiverViewHolder) holder).receiverMsg.setVisibility(View.GONE);
                 ((ReceiverViewHolder) holder).receiverImage.setVisibility(View.VISIBLE);
                 Picasso.get().load(messageModel.getMessage()).into(((ReceiverViewHolder) holder).receiverImage);
+            }
+            else if(messageModel.getMessageType() != null && (messageModel.getMessageType().equals("pdf")   ||  messageModel.getMessageType().equals("docx"))){
+                ((ReceiverViewHolder) holder).receiverMsg.setVisibility(View.GONE);
+                ((ReceiverViewHolder) holder).receiverImage.setVisibility(View.VISIBLE);
+                ((ReceiverViewHolder) holder).receiverImage.setBackgroundResource(R.drawable.file_icon);
+
+
+                // download file if the user clicks on the document
+                ((ReceiverViewHolder) holder).itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        // with the position, we get only the message, the user has clicked on
+                        // we are getting the message, which is the url to the storage
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(messageModel.getMessage()));
+                        ((ReceiverViewHolder) holder).itemView.getContext().startActivity(intent);
+                    }
+                });
             }
 
             Date date = new Date(messageModel.getTimestamp());

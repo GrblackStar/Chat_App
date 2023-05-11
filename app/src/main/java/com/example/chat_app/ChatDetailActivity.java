@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.example.chat_app.Adapter.ChatAdapter;
 import com.example.chat_app.Models.MessageModel;
 import com.example.chat_app.databinding.ActivityChatDetailBinding;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -139,10 +140,22 @@ public class ChatDetailActivity extends AppCompatActivity {
                         if (i == 1){
                             // pdf
                             checker = "pdf";
+
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            intent.setType("application/pdf");
+                            startActivityForResult(intent.createChooser(intent, "Select PDF File"), 438);
+
                         }
                         if (i == 2){
                             // word
                             checker = "docx";
+
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            intent.setType("application/msword");
+                            startActivityForResult(intent.createChooser(intent, "Select Word File"), 438);
+
                         }
                     }
                 }).show();
@@ -199,6 +212,62 @@ public class ChatDetailActivity extends AppCompatActivity {
 
             if (!checker.equals("image")){
                 // it means that the user has not selected an image, but rather a different kind of file:
+
+                StorageReference reference = FirebaseStorage.getInstance().getReference().child("Document_Files_Chat").child(fileUri.getLastPathSegment().toString());
+
+                // initialize sender and receiver
+                final String senderId = auth.getUid();
+                String receiverId = getIntent().getStringExtra("userId");
+                final String senderRoom = senderId + receiverId;
+                final String receiverRoom = receiverId + senderId;
+
+
+                reference.putFile(fileUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                final MessageModel model = new MessageModel(senderId, uri.toString(), checker);
+                                model.setTimestamp(new Date().getTime());
+
+                                database.getReference().child("chats")
+                                        .child(senderRoom)
+                                        .push()
+                                        .setValue(model)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+                                                // message sent
+                                            }
+                                        });
+                                database.getReference().child("chats")
+                                        .child(receiverRoom)
+                                        .push()
+                                        .setValue(model).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void unused) {
+                                                // message sent successfully
+                                            }
+                                        });
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(ChatDetailActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+
+
+
+
+
+
+
+
 
             }
             else if (checker.equals("image")){
